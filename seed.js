@@ -1,68 +1,24 @@
+// seed-db.js
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const Product = require('./models/Product');
-const User = require('./models/User');
+const products = require('./demo.json');
 
-dotenv.config();
-
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('MongoDB connected for seeding');
-}).catch(err => {
-  console.error('DB connection error:', err);
-});
-
-const products = [
-  {
-    name: "Phone X",
-    description: "Latest smartphone with awesome features",
-    price: 999,
-    category: "electronics",
-    image: "phone.jpg",
-    stock: 10
-  },
-  {
-    name: "Running Shoes",
-    description: "Comfortable and lightweight shoes",
-    price: 120,
-    category: "footwear",
-    image: "shoes.jpg",
-    stock: 20
-  }
-];
-
-const users = [
-  {
-    username: "john",
-    email: "john@example.com",
-    password: "123456",
-    role: "customer",
-    cart: []
-  },
-  {
-    username: "bizowner",
-    email: "biz@example.com",
-    password: "123456",
-    role: "business",
-    cart: []
-  }
-];
-
-async function seedDB() {
+const seedDatabase = async () => {
   try {
-    await Product.deleteMany({});
-    await User.deleteMany({});
-
+    await mongoose.connect("mongodb+srv://muztahiddurjoy99:XFjGDzngNx7fQayN@cluster0.ciup16t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+    
+    // Clear existing data
+    await Product.deleteMany();
+    
+    // Insert new data
     await Product.insertMany(products);
-    await User.insertMany(users);
-
-    console.log('Dummy data added');
-    mongoose.connection.close();
-  } catch (err) {
-    console.error(err);
+    
+    console.log('Database seeded successfully!');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    process.exit(1);
   }
-}
+};
 
-seedDB();
+seedDatabase();

@@ -1,41 +1,22 @@
 const express = require('express');
+const productController = require('../controllers/productController');
+const authMiddleware = require('../middlewares/authMiddleware');
+const adminMiddleware = require('../middlewares/adminMiddleware');
+
 const router = express.Router();
-const Product = require('../models/Product');
 
-// GET all products with optional search & filter
-router.get('/', async (req, res) => {
-  const { name, category } = req.query;
-  const filter = {};
+// Public routes
+router.get('/', productController.getAllProducts);
+router.get('/search', productController.searchProducts);
+router.get('/:id', productController.getProduct);
 
-  if (name) {
-    filter.name = { $regex: name, $options: 'i' }; // case-insensitive search
-  }
+// Protected routes (require authentication)
+router.use(authMiddleware);
 
-  if (category) {
-    filter.category = category;
-  }
-
-  try {
-    const products = await Product.find(filter);
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// GET product by ID with related suggestions
-router.get('/:id', async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    const related = await Product.find({
-      category: product.category,
-      _id: { $ne: product._id }
-    }).limit(3);
-
-    res.json({ product, related });
-  } catch (err) {
-    res.status(500).json({ error: 'Product not found' });
-  }
-});
+// Admin-only routes
+router.use(adminMiddleware);
+router.post('/', productController.createProduct);
+router.patch('/:id', productController.updateProduct);
+router.delete('/:id', productController.deleteProduct);
 
 module.exports = router;

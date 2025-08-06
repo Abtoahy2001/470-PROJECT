@@ -1,0 +1,108 @@
+const productService = require('../services/productService');
+
+exports.createProduct = async (req, res, next) => {
+  try {
+    const product = await productService.createProduct(req.body);
+    res.status(201).json({
+      status: 'success',
+      data: {
+        product
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getAllProducts = async (req, res, next) => {
+  try {
+    const filter = {};
+    if (req.query.category) {
+      filter.category_id = req.query.category;
+    }
+    
+    const products = await productService.getAllProducts(filter);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getProduct = async (req, res, next) => {
+  try {
+    const product = await productService.getProductById(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Product not found'
+      });
+    }
+    res.status(200).json({
+      status: 'success',
+      data: {
+        product
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateProduct = async (req, res, next) => {
+  try {
+    const product = await productService.updateProduct(req.params.id, req.body);
+    if (!product) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Product not found'
+      });
+    }
+    res.status(200).json({
+      status: 'success',
+      data: {
+        product
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteProduct = async (req, res, next) => {
+  try {
+    const product = await productService.deleteProduct(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Product not found'
+      });
+    }
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.searchProducts = async (req, res, next) => {
+  try {
+    const products = await productService.searchProducts(req.query.q);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

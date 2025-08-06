@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Wireless Bluetooth Headphones",
+    "description": "Premium noise-cancelling wireless headphones with 30-hour battery life",
+    "price": 199.99,
+    "stock_quantity": 50,
+    "category_id": "electronics",
+    "image_url": "/images/headphones.jpg",
+    "is_active": true,
+    "created_at": "2023-01-15T10:00:00Z",
+    "updated_at": "2023-01-15T10:00:00Z"
+  },
+  {
+    "name": "Smartphone Pro X",
+    "description": "Latest flagship smartphone with 6.7\" AMOLED display and 108MP camera",
+    "price": 999.99,
+    "stock_quantity": 30,
+    "category_id": "electronics",
+    "image_url": "/images/smartphone.jpg",
+    "is_active": true,
+    "created_at": "2023-02-10T09:30:00Z",
+    "updated_at": "2023-02-10T09:30:00Z"
+  },
+  {
+    "name": "Organic Cotton T-Shirt",
+    "description": "100% organic cotton t-shirt available in multiple colors",
+    "price": 29.99,
+    "stock_quantity": 100,
+    "category_id": "clothing",
+    "image_url": "/images/tshirt.jpg",
+    "is_active": true,
+    "created_at": "2023-03-05T14:15:00Z",
+    "updated_at": "2023-03-05T14:15:00Z"
+  },
+  {
+    "name": "Stainless Steel Water Bottle",
+    "description": "1L insulated stainless steel water bottle, keeps drinks cold for 24 hours",
+    "price": 24.95,
+    "stock_quantity": 75,
+    "category_id": "home",
+    "image_url": "/images/water-bottle.jpg",
+    "is_active": true,
+    "created_at": "2023-01-20T11:45:00Z",
+    "updated_at": "2023-01-20T11:45:00Z"
+  },
+  {
+    "name": "Running Shoes",
+    "description": "Lightweight running shoes with cushioned soles for maximum comfort",
+    "price": 89.99,
+    "stock_quantity": 40,
+    "category_id": "footwear",
+    "image_url": "/images/running-shoes.jpg",
+    "is_active": true,
+    "created_at": "2023-02-28T16:20:00Z",
+    "updated_at": "2023-02-28T16:20:00Z"
+  },
+  {
+    "name": "Wireless Charging Pad",
+    "description": "Qi-certified fast wireless charging pad for smartphones",
+    "price": 39.99,
+    "stock_quantity": 60,
+    "category_id": "electronics",
+    "image_url": "/images/wireless-charger.jpg",
+    "is_active": true,
+    "created_at": "2023-03-15T13:10:00Z",
+    "updated_at": "2023-03-15T13:10:00Z"
+  },
+  {
+    "name": "Leather Wallet",
+    "description": "Genuine leather wallet with multiple card slots and cash compartment",
+    "price": 49.95,
+    "stock_quantity": 35,
+    "category_id": "accessories",
+    "image_url": "/images/wallet.jpg",
+    "is_active": true,
+    "created_at": "2023-01-25T09:15:00Z",
+    "updated_at": "2023-01-25T09:15:00Z"
+  },
+  {
+    "name": "Fitness Tracker",
+    "description": "Waterproof fitness tracker with heart rate monitor and sleep tracking",
+    "price": 79.99,
+    "stock_quantity": 45,
+    "category_id": "electronics",
+    "image_url": "/images/fitness-tracker.jpg",
+    "is_active": true,
+    "created_at": "2023-02-15T10:30:00Z",
+    "updated_at": "2023-02-15T10:30:00Z"
+  },
+  {
+    "name": "Ceramic Coffee Mug",
+    "description": "16oz ceramic coffee mug with comfortable handle",
+    "price": 12.99,
+    "stock_quantity": 120,
+    "category_id": "home",
+    "image_url": "/images/coffee-mug.jpg",
+    "is_active": true,
+    "created_at": "2023-03-01T08:45:00Z",
+    "updated_at": "2023-03-01T08:45:00Z"
+  },
+  {
+    "name": "Backpack",
+    "description": "Durable backpack with laptop compartment and USB charging port",
+    "price": 59.99,
+    "stock_quantity": 25,
+    "category_id": "accessories",
+    "image_url": "/images/backpack.jpg",
+    "is_active": true,
+    "created_at": "2023-01-30T14:00:00Z",
+    "updated_at": "2023-01-30T14:00:00Z"
+  }
+]
