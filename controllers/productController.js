@@ -1,6 +1,6 @@
 const productService = require('../services/productService');
 
-exports.createProduct = async (req, res, next) => {
+const createProduct = async (req, res, next) => {
   try {
     const product = await productService.createProduct(req.body);
     res.status(201).json({
@@ -14,7 +14,7 @@ exports.createProduct = async (req, res, next) => {
   }
 };
 
-exports.getAllProducts = async (req, res, next) => {
+const getAllProducts = async (req, res, next) => {
   try {
     const filter = {};
     if (req.query.category) {
@@ -34,7 +34,7 @@ exports.getAllProducts = async (req, res, next) => {
   }
 };
 
-exports.getProduct = async (req, res, next) => {
+const getProduct = async (req, res, next) => {
   try {
     const product = await productService.getProductById(req.params.id);
     if (!product) {
@@ -54,7 +54,7 @@ exports.getProduct = async (req, res, next) => {
   }
 };
 
-exports.updateProduct = async (req, res, next) => {
+const updateProduct = async (req, res, next) => {
   try {
     const product = await productService.updateProduct(req.params.id, req.body);
     if (!product) {
@@ -74,7 +74,7 @@ exports.updateProduct = async (req, res, next) => {
   }
 };
 
-exports.deleteProduct = async (req, res, next) => {
+const deleteProduct = async (req, res, next) => {
   try {
     const product = await productService.deleteProduct(req.params.id);
     if (!product) {
@@ -92,7 +92,7 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-exports.searchProducts = async (req, res, next) => {
+const searchProducts = async (req, res, next) => {
   try {
     const products = await productService.searchProducts(req.query.q);
     res.status(200).json({
@@ -105,4 +105,13 @@ exports.searchProducts = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+module.exports = {
+  createProduct,
+  getAllProducts,
+  getProduct,
+  updateProduct,
+  deleteProduct,
+  searchProducts
 };

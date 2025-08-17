@@ -1,7 +1,7 @@
 const userService = require('../services/userService');
 const { createToken } = require('../utils/jwt');
 
-exports.register = async (req, res, next) => {
+const register = async (req, res, next) => {
   try {
     const user = await userService.createUser(req.body);
     const token = createToken(user._id);
@@ -18,7 +18,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-exports.login = async (req, res, next) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -44,7 +44,7 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.getAllUsers = async (req, res, next) => {
+const getAllUsers = async (req, res, next) => {
   try {
     const users = await userService.getAllUsers();
     res.status(200).json({
@@ -59,7 +59,7 @@ exports.getAllUsers = async (req, res, next) => {
   }
 };
 
-exports.getUser = async (req, res, next) => {
+const getUser = async (req, res, next) => {
   try {
     const user = await userService.getUserById(req.params.id);
     res.status(200).json({
@@ -73,7 +73,7 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
-exports.updateUser = async (req, res, next) => {
+const updateUser = async (req, res, next) => {
   try {
     const user = await userService.updateUser(req.params.id, req.body);
     res.status(200).json({
@@ -87,7 +87,7 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-exports.deleteUser = async (req, res, next) => {
+const deleteUser = async (req, res, next) => {
   try {
     await userService.deleteUser(req.params.id);
     res.status(204).json({
@@ -97,4 +97,13 @@ exports.deleteUser = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+module.exports = {
+  register,
+  login,
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser
 };

@@ -6,6 +6,9 @@ const cartRoutes = require('./routes/cartRoutes');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/userRoutes');
 const wishlistRoutes = require('./routes/wishlistRoute');
+const categoryRoutes = require('./routes/categoryRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+
 const cors = require('cors');
 
 dotenv.config();
@@ -26,7 +29,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/wishlist', wishlistRoutes);
-
+app.use('/api/categories', categoryRoutes);
+app.use('/api/orders', orderRoutes);
 
 // DB Connect
 mongoose.connect(process.env.MONGO_URI, {

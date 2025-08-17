@@ -1,6 +1,6 @@
 const wishlistService = require('../services/wishlistService');
 
-exports.addToWishlist = async (req, res, next) => {
+const addToWishlist = async (req, res, next) => {
   try {
     const wishlistItem = await wishlistService.addToWishlist(
       req.user._id,
@@ -24,7 +24,7 @@ exports.addToWishlist = async (req, res, next) => {
   }
 };
 
-exports.getUserWishlist = async (req, res, next) => {
+const getUserWishlist = async (req, res, next) => {
   try {
     console.log('Fetching wishlist for user:', req.user._id);
     if (!req.user) {
@@ -48,7 +48,7 @@ exports.getUserWishlist = async (req, res, next) => {
   }
 };
 
-exports.removeFromWishlist = async (req, res, next) => {
+const removeFromWishlist = async (req, res, next) => {
   try {
     const wishlistItem = await wishlistService.removeFromWishlist(
       req.user._id,
@@ -71,7 +71,7 @@ exports.removeFromWishlist = async (req, res, next) => {
   }
 };
 
-exports.checkInWishlist = async (req, res, next) => {
+const checkInWishlist = async (req, res, next) => {
   try {
     const inWishlist = await wishlistService.checkInWishlist(
       req.user._id,
@@ -87,4 +87,11 @@ exports.checkInWishlist = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+module.exports = {
+  addToWishlist,
+  getUserWishlist,
+  removeFromWishlist,
+  checkInWishlist
 };
