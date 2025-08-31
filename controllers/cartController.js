@@ -1,4 +1,5 @@
 const cartService = require('../services/cartService');
+const Product = require('../models/Product');
 
 const getCart = async (req, res, next) => {
   try {
@@ -31,6 +32,25 @@ const addToCart = async (req, res, next) => {
       product.price
     );
 
+    res.status(200).json({
+      status: 'success',
+      data: { cart }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateCart = async (req, res, next) => {
+  try {
+    const { productId, quantity } = req.body;
+    const cart = await cartService.updateCart(req.user._id, productId, quantity);
+    if (!cart) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Cart not found'
+      });
+    }
     res.status(200).json({
       status: 'success',
       data: { cart }
@@ -77,5 +97,6 @@ module.exports = {
     addToCart,
     getCart,
     removeFromCart,
-    clearCart
+    clearCart,
+    updateCart
 }

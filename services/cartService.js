@@ -47,6 +47,23 @@ class CartService {
       { new: true }
     );
   }
+
+  async updateCart(userId, productId, quantity) {
+    const cart = await Cart.findOne({ user_id: userId });
+    if (!cart) return null;
+
+    const item = cart.items.find(
+      item => item.product_id.toString() === productId
+    );
+    console.log("Item:", cart.items, "Product ID:", productId, "Quantity:", quantity);
+
+    if (item) {
+      item.quantity = quantity;
+      return await cart.save();
+    }
+
+    return null;
+  }
 }
 
 module.exports = new CartService();

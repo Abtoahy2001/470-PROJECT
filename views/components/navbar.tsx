@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ModeToggle } from './mode-toggler'
 
 export function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,6 +52,7 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {true ? (
               <>
+              <ModeToggle/>
                 <Link href="/wishlist">
                   <Button variant="ghost" size="icon">
                     <Heart className="h-5 w-5" />

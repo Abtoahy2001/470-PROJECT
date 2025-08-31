@@ -16,5 +16,6 @@ router.get('/:id', orderController.getOrder);
 // Admin-only routes
 router.use(adminMiddleware);
 router.patch('/:id/status', orderController.updateOrderStatus);
+router.patch('/:id/payment-status', orderController.updatePaymentStatus);
 
 module.exports = router;

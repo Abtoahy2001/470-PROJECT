@@ -1,64 +1,120 @@
 "use client"
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { CartItem } from '@/components/cart/cart-item'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { ShoppingBag, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import axios from 'axios'
+import { apiurl } from '@/config'
 import Link from 'next/link'
-import { ShoppingBag } from 'lucide-react'
-import { useState } from 'react'
 
-// types/cart.ts
-export interface CartItem {
-  id: string;
-  user_id: string;
-  product_id: string;
-  quantity: number;
-  price_at_addition: number;
-  created_at: string;
-  updated_at: string;
-  products: {
-    id: string;
-    name: string;
-    description?: string;
-    price: number;
-    stock_quantity: number;
-    image_url: string;
-    category_id?: string;
-    is_active: boolean;
-    // Include other product fields as needed
-  };
+interface Product {
+  _id: string
+  name: string
+  description?: string
+  price: number
+  stock_quantity: number
+  image_url: string
+  category_id?: string
+  is_active: boolean
 }
 
+interface CartItem {
+  product_id: string | Product
+  quantity: number
+  price_at_addition: number
+}
 
-const mockCartItems: CartItem[] = [
-  {
-    id: 'cart_1',
-    user_id: 'user_1',
-    product_id: 'prod_1',
-    quantity: 1,
-    price_at_addition: 129.99,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    products: {
-      id: 'prod_1',
-      name: 'Wireless Headphones',
-      price: 129.99,
-      image_url: '/placeholder.svg',
-      stock_quantity: 10,
-      // Include other required product fields from your CartItemType
-    }
-  },
-  // Add more items as needed
-]
+interface Cart {
+  _id: string
+  user_id: string
+  items: CartItem[]
+  total: number
+  created_at: string
+  updated_at: string
+}
 
 export default function CartPage() {
-  const [items] = useState(mockCartItems)
-  const [loading] = useState(false)
-  
-  // Calculate totals from mock data
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-  const totalPrice = items.reduce((sum, item) => sum + (item.price_at_addition * item.quantity), 0)
+  const router = useRouter()
+  const [cart, setCart] = useState<Cart | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState(false)
+
+  const fetchCart = async () => {
+    try {
+      setLoading(true)
+      const response = await axios.get(`${apiurl}/cart`,{
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      setCart(response.data.data.cart)
+    } catch (error) {
+      console.error('Error fetching cart:', error)
+      toast.error('Failed to load your cart')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const removeItem = async (productId: string) => {
+    try {
+      setUpdating(true)
+      await axios.delete(`${apiurl}/cart/remove/${productId}`,{
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      toast.success('Item removed from cart')
+      fetchCart() 
+    } catch (error) {
+      console.error('Error removing item:', error)
+      toast.error('Failed to remove item')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const updateQuantity = async (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) return
+    
+    try {
+      setUpdating(true)
+      console.log("Updating quantity for product:", productId, "to", newQuantity)
+      await axios.patch(`${apiurl}/cart/update`, {
+        productId,
+        quantity: newQuantity
+      },{
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      fetchCart()
+    } catch (error) {
+      console.error('Error updating quantity:', error)
+      toast.error('Failed to update quantity')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const clearCart = async () => {
+    try {
+      setUpdating(true)
+      await axios.delete(`${apiurl}/cart/clear`,{
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      toast.success('Cart cleared')
+      setCart(null)
+    } catch (error) {
+      console.error('Error clearing cart:', error)
+      toast.error('Failed to clear cart')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCart()
+  }, [])
 
   if (loading) {
     return (
@@ -78,7 +134,7 @@ export default function CartPage() {
     )
   }
 
-  if (items.length === 0) {
+  if (!cart || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -91,19 +147,64 @@ export default function CartPage() {
     )
   }
 
+  const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0)
+  const subtotal = cart.items.reduce(
+    (sum, item) => sum + (typeof item.product_id === 'object' 
+      ? item.product_id.price * item.quantity 
+      : item.price_at_addition * item.quantity
+    ), 0
+  )
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
-            <CartItem key={item.id} item={item} />
-          ))}
+          {cart.items.map((item) => {
+            const product = typeof item.product_id === 'object' 
+              ? item.product_id 
+              : { _id: item.product_id } as Product
+            
+            return (
+              <CartItem 
+                key={product._id}
+                item={{
+                  _id: product._id,
+                  product_id: product._id,
+                  quantity: item.quantity,
+                  price_at_addition: typeof item.product_id === 'object' 
+                    ? item.product_id.price 
+                    : item.price_at_addition,
+                  products: {
+                    _id: product._id,
+                    name: typeof item.product_id === 'object' ? item.product_id.name : 'Product',
+                    price: typeof item.product_id === 'object' ? item.product_id.price : item.price_at_addition,
+                    image_url: typeof item.product_id === 'object' ? item.product_id.image_url : '/placeholder.svg',
+                    stock_quantity: typeof item.product_id === 'object' ? item.product_id.stock_quantity : 1,
+                  }
+                }}
+                onRemove={removeItem}
+                onQuantityChange={updateQuantity}
+                disabled={updating}
+              />
+            )
+          })}
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              variant="outline" 
+              onClick={clearCart}
+              disabled={updating}
+            >
+              {updating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : null}
+              Clear Cart
+            </Button>
+          </div>
         </div>
 
-        {/* Order Summary */}
         <div>
           <Card>
             <CardHeader>
@@ -112,7 +213,7 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Items ({totalItems})</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
@@ -121,10 +222,18 @@ export default function CartPage() {
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
-              <Button className="w-full" size="lg" asChild>
-                <Link href="/checkout">Proceed to Checkout</Link>
+              <Button 
+                className="w-full" 
+                size="lg" 
+                onClick={() => router.push('/checkout')}
+                disabled={updating}
+              >
+                {updating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Proceed to Checkout
               </Button>
               <Button variant="outline" className="w-full" asChild>
                 <Link href="/products">Continue Shopping</Link>

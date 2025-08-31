@@ -9,13 +9,20 @@ module.exports = async (req, res, next) => {
     }
 
     if (!token) {
-      throw new Error('You are not logged in! Please log in to get access');
+      res.status(403).json({
+        status: 'fail',
+        message: 'You do not have permission to perform this action'
+      });
     }
 
     const decoded = verifyToken(token);
     const currentUser = await User.findById(decoded.id);
     if (!currentUser) {
-      throw new Error('The user belonging to this token no longer exists');
+      res.status(403).json({
+        status: 'fail',
+        message: 'You do not have permission to perform this action'
+      });
+      return;
     }
 
     req.user = currentUser;

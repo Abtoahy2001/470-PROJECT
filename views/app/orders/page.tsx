@@ -6,88 +6,47 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
-import type { Order } from '@/lib/types'
+import { toast } from 'sonner'
+import axios from 'axios'
+import { apiurl } from '@/config'
 
-// Mock data
-const mockOrders: Order[] = [
-  {
-    id: 'order_1',
-    user_id: 'user_1',
-    total_amount: 299.97,
-    status: 'processing',
-    shipping_address: {
-      full_name: 'John Doe',
-      address_line_1: '123 Main St',
-      address_line_2: 'Apt 4B',
-      city: 'New York',
-      state: 'NY',
-      postal_code: '10001',
-      country: 'United States'
-    },
-    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    order_items: [
-      {
-        id: 'item_1',
-        order_id: 'order_1',
-        product_id: 'prod_1',
-        quantity: 2,
-        price: 129.99,
-        products: {
-          id: 'prod_1',
-          name: 'Wireless Headphones',
-          description: 'Premium noise-cancelling headphones',
-          price: 129.99,
-          image_url: '/placeholder.svg'
-        }
-      },
-      {
-        id: 'item_2',
-        order_id: 'order_1',
-        product_id: 'prod_2',
-        quantity: 1,
-        price: 39.99,
-        products: {
-          id: 'prod_2',
-          name: 'USB-C Cable',
-          description: 'High-speed charging cable',
-          price: 39.99,
-          image_url: '/placeholder.svg'
-        }
-      }
-    ]
-  },
-  {
-    id: 'order_2',
-    user_id: 'user_1',
-    total_amount: 89.98,
-    status: 'delivered',
-    shipping_address: {
-      full_name: 'John Doe',
-      address_line_1: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      postal_code: '10001',
-      country: 'United States'
-    },
-    created_at: new Date(Date.now() - 604800000).toISOString(), // 1 week ago
-    order_items: [
-      {
-        id: 'item_3',
-        order_id: 'order_2',
-        product_id: 'prod_3',
-        quantity: 1,
-        price: 89.98,
-        products: {
-          id: 'prod_3',
-          name: 'Smart Watch',
-          description: 'Fitness tracking smartwatch',
-          price: 89.98,
-          image_url: '/placeholder.svg'
-        }
-      }
-    ]
+interface OrderItem {
+  product_id: {
+    _id: string
+    name: string
+    description?: string
+    price: number
+    image_url: string
   }
-]
+  quantity: number
+  price_at_purchase: number
+}
+
+interface Order {
+  _id: string
+  user_id: {
+    _id: string
+    email: string
+  }
+  items: OrderItem[]
+  subtotal: number
+  shipping_fee: number
+  total: number
+  shipping_address: string
+  payment_method: string
+  payment_status: string
+  order_status: string
+  created_at: string
+  __v: number
+}
+
+interface OrdersResponse {
+  status: string
+  results: number
+  data: {
+    orders: Order[]
+  }
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -96,11 +55,14 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500))
-        setOrders(mockOrders)
+        setLoading(true)
+        const response = await axios.get<OrdersResponse>(`${apiurl}/orders`,{
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+        setOrders(response.data.data.orders)
       } catch (error) {
         console.error('Error fetching orders:', error)
+        toast.error('Failed to load orders')
       } finally {
         setLoading(false)
       }
@@ -117,6 +79,20 @@ export default function OrdersPage() {
       case 'delivered': return 'default'
       case 'cancelled': return 'destructive'
       default: return 'secondary'
+    }
+  }
+
+  const parseShippingAddress = (addressString: string) => {
+    // Simple parsing - adjust based on your actual address format
+    const parts = addressString.split(', ')
+    return {
+      full_name: parts[0] || '',
+      address_line_1: parts[1] || '',
+      address_line_2: parts[2] || '',
+      city: parts[3] || '',
+      state: parts[4]?.split(' ')[0] || '',
+      postal_code: parts[4]?.split(' ')[1] || '',
+      country: parts[5] || ''
     }
   }
 
@@ -146,60 +122,61 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order) => (
-            <Card key={order.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    Order #{order.id.slice(0, 8)}
-                  </CardTitle>
-                  <Badge variant={getStatusColor(order.status)}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </Badge>
-                </div>
-                <p className="text-muted-foreground">
-                  Placed {formatDistanceToNow(new Date(order.created_at))} ago
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Items</h4>
-                      <div className="space-y-2">
-                        {order.order_items?.map((item) => (
-                          <div key={item.id} className="flex justify-between text-sm">
-                            <span>{item.products?.name} × {item.quantity}</span>
-                            <span>${(item.price * item.quantity).toFixed(2)}</span>
-                          </div>
-                        ))}
+          {orders.map((order) => {
+            const shippingAddress = parseShippingAddress(order.shipping_address)
+            
+            return (
+              <Card key={order._id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">
+                      Order #{order._id.slice(-6).toUpperCase()}
+                    </CardTitle>
+                    <Badge variant={getStatusColor(order.order_status)}>
+                      {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground">
+                    Placed {formatDistanceToNow(new Date(order.created_at))} ago
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Items</h4>
+                        <div className="space-y-2">
+                          {order.items.map((item) => (
+                            <div key={item.product_id._id} className="flex justify-between text-sm">
+                              <span>{item.product_id.name} × {item.quantity}</span>
+                              <span>${(item.price_at_purchase * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Shipping Address</h4>
+                        <div className="text-sm text-muted-foreground">
+                          <p>{shippingAddress.full_name}</p>
+                          <p>{shippingAddress.address_line_1}</p>
+                          {shippingAddress.address_line_2 && (
+                            <p>{shippingAddress.address_line_2}</p>
+                          )}
+                          <p>
+                            {shippingAddress.city}, {shippingAddress.state} {shippingAddress.postal_code}
+                          </p>
+                          <p>{shippingAddress.country}</p>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Shipping Address</h4>
-                      <div className="text-sm text-muted-foreground">
-                        <p>{order.shipping_address.full_name}</p>
-                        <p>{order.shipping_address.address_line_1}</p>
-                        {order.shipping_address.address_line_2 && (
-                          <p>{order.shipping_address.address_line_2}</p>
-                        )}
-                        <p>
-                          {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.postal_code}
-                        </p>
-                        <p>{order.shipping_address.country}</p>
-                      </div>
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <span className="font-semibold">Total: ${order.total.toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <span className="font-semibold">Total: ${order.total_amount.toFixed(2)}</span>
-                    <Button variant="outline" asChild>
-                      <Link href={`/orders/${order.id}`}>View Details</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>

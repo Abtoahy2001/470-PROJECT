@@ -8,10 +8,9 @@ const router = express.Router();
 // Public routes
 router.get('/', productController.getAllProducts);
 router.get('/search', productController.searchProducts);
+router.get('/category/:categoryId', productController.getProductsByCategory);
+router.get('/sort', productController.sortProducts);
 router.get('/:id', productController.getProduct);
-
-// Protected routes (require authentication)
-router.use(authMiddleware);
 
 // Admin-only routes
 router.use(adminMiddleware);

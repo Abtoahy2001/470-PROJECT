@@ -13,14 +13,14 @@ export interface Product {
 }
 
 export interface Category {
-  id: string
+  _id: string
   name: string
   description: string
   created_at: string
 }
 
 export interface CartItem {
-  id: string
+  _id: string
   user_id: string
   product_id: string
   quantity: number

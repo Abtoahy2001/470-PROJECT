@@ -14,14 +14,10 @@ const createProduct = async (req, res, next) => {
   }
 };
 
+
 const getAllProducts = async (req, res, next) => {
   try {
-    const filter = {};
-    if (req.query.category) {
-      filter.category_id = req.query.category;
-    }
-    
-    const products = await productService.getAllProducts(filter);
+    const products = await productService.getAllProducts();
     res.status(200).json({
       status: 'success',
       results: products.length,
@@ -33,6 +29,22 @@ const getAllProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+const getProductsByCategory = async (req, res, next) => {
+  try {
+    const products = await productService.getProductsByCategory(req.params.categoryId);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 const getProduct = async (req, res, next) => {
   try {
@@ -107,11 +119,30 @@ const searchProducts = async (req, res, next) => {
   }
 };
 
+const sortProducts = async (req, res, next) => {
+  try {
+    const order = req.query.order || 'name';
+    console.log(`Sorting products by: ${order}`);
+    const products = await productService.sortProducts(order);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
   getProduct,
   updateProduct,
   deleteProduct,
-  searchProducts
+  searchProducts,
+  getProductsByCategory,
+  sortProducts
 };

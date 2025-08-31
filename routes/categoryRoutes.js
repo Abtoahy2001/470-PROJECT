@@ -9,8 +9,7 @@ const router = express.Router();
 router.get('/', categoryController.getAllCategories);
 router.get('/:id', categoryController.getCategory);
 
-// Protected routes (require authentication + admin)
-router.use(authMiddleware);
+// Protected routes
 router.use(adminMiddleware);
 
 router.post('/', categoryController.createCategory);

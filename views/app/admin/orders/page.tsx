@@ -8,76 +8,62 @@ import {
   Table, 
   TableBody, 
   TableCell, 
- TableHead, 
+  TableHead, 
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
-import type { Order } from '@/lib/types'
+import axios from 'axios'
+import { apiurl } from '@/config'
+import { OrderStatusSelect } from '@/components/admin/order/order-status-select'
 
-// Mock data
-const mockOrders: Order[] = [
-  {
-    id: 'ord_1',
-    status: 'processing',
-    total_amount: 129.99,
-    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    profiles: {
-      full_name: 'John Doe',
-      email: 'john@example.com'
-    },
-    order_items: [
-      { quantity: 1, products: { name: 'Wireless Headphones' } },
-      { quantity: 2, products: { name: 'USB-C Cable' } }
-    ]
-  },
-  {
-    id: 'ord_2',
-    status: 'shipped',
-    total_amount: 59.99,
-    created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-    profiles: {
-      full_name: 'Jane Smith',
-      email: 'jane@example.com'
-    },
-    order_items: [
-      { quantity: 1, products: { name: 'Smart Watch' } }
-    ]
-  },
-  {
-    id: 'ord_3',
-    status: 'delivered',
-    total_amount: 299.99,
-    created_at: new Date(Date.now() - 604800000).toISOString(), // 1 week ago
-    profiles: {
-      full_name: 'Robert Johnson',
-      email: 'robert@example.com'
-    },
-    order_items: [
-      { quantity: 1, products: { name: 'Gaming Console' } },
-      { quantity: 1, products: { name: 'Controller' } }
-    ]
+interface Order {
+  _id: string
+  user_id: {
+    _id: string
+    email: string
+    fullname: string
   }
-]
+  items: {
+    product_id: {
+      _id: string
+      name: string
+    }
+    quantity: number
+  }[]
+  subtotal: number
+  shipping_fee: number
+  total: number
+  shipping_address: string
+  payment_method: string
+  payment_status: string
+  order_status: string
+  created_at: string
+}
+
+interface OrdersResponse {
+  status: string
+  results: number
+  data: {
+    orders: Order[]
+  }
+}
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+
 
   const fetchOrders = async () => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setOrders(mockOrders)
+      setLoading(true)
+      const response = await axios.get<OrdersResponse>(`${apiurl}/orders`,{
+        headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
+      })
+      setOrders(response.data.data.orders)
     } catch (error) {
       console.error('Error fetching orders:', error)
       toast.error('Failed to load orders', {
@@ -90,12 +76,17 @@ export default function AdminOrdersPage() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 300))
+      setUpdatingStatus(orderId)
+      await axios.patch(`${apiurl}/orders/${orderId}/status`, {
+        status: newStatus
+      },
+    {
+      headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
+    })
       
       setOrders(prev => prev.map(order => 
-        order.id === orderId 
-          ? { ...order, status: newStatus } 
+        order._id === orderId 
+          ? { ...order, order_status: newStatus } 
           : order
       ))
       
@@ -103,9 +94,39 @@ export default function AdminOrdersPage() {
         description: `Order status has been changed to ${newStatus}.`
       })
     } catch (error) {
+      console.error('Error updating order status:', error)
       toast.error('Update failed', {
         description: 'Failed to update order status. Please try again.'
       })
+    } finally {
+      setUpdatingStatus(null)
+    }
+  }
+
+  const updatePaymentStatus = async (orderId: string, newStatus: string) => {
+    try {
+      setUpdatingStatus(orderId)
+      await axios.patch(`${apiurl}/orders/${orderId}/payment-status`, {
+        status: newStatus
+      },
+      {
+        headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
+      })
+      setOrders(prev => prev.map(order => 
+        order._id === orderId 
+          ? { ...order, payment_status: newStatus } 
+          : order
+      ))
+      toast.success('Payment status updated', {
+        description: `Payment status has been changed to ${newStatus}.`
+      })
+    } catch (error) {
+      console.error('Error updating payment status:', error)
+      toast.error('Update failed', {
+        description: 'Failed to update payment status. Please try again.'
+      })
+    } finally {
+      setUpdatingStatus(null)
     }
   }
 
@@ -116,6 +137,16 @@ export default function AdminOrdersPage() {
       case 'shipped': return 'default'
       case 'delivered': return 'default'
       case 'cancelled': return 'destructive'
+      default: return 'secondary'
+    }
+  }
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'secondary'
+      case 'completed': return 'default'
+      case 'failed': return 'destructive'
+      case 'refunded': return 'default'
       default: return 'secondary'
     }
   }
@@ -151,58 +182,60 @@ export default function AdminOrdersPage() {
                   <TableHead>Customer</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Order Status</TableHead>
+                  <TableHead>Payment Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.map((order) => (
-                  <TableRow key={order.id}>
+                  <TableRow key={order._id}>
                     <TableCell className="font-mono text-sm">
-                      #{order.id.slice(0, 8)}
+                      #{order._id.slice(-6).toUpperCase()}
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{order.profiles?.full_name}</div>
+                        <div className="font-medium">{order.user_id.fullname}</div>
                         <div className="text-sm text-muted-foreground">
-                          {order.profiles?.email}
+
+                          {order.user_id.email}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {order.order_items?.length} items
+                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </TableCell>
-                    <TableCell>${order.total_amount.toFixed(2)}</TableCell>
+                    <TableCell>${order.total.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge variant={getStatusColor(order.status)}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      <Badge variant={getPaymentStatusColor(order.payment_status)}>
+                        {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusColor(order.order_status)}>
+                        {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       {formatDistanceToNow(new Date(order.created_at))} ago
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => updateOrderStatus(order.id, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/orders/${order.id}`}>View</Link>
-                        </Button>
-                      </div>
+                      <OrderStatusSelect
+                        currentStatus={order.order_status}
+                        onStatusChange={(newStatus) => updateOrderStatus(order._id, newStatus)}
+                        statuses={['processing', 'shipped', 'delivered', 'cancelled']}
+                        isLoading={updatingStatus === order._id}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <OrderStatusSelect
+                        currentStatus={order.order_status}
+                        statuses={['pending', 'completed', 'failed', 'refunded']}
+                        onStatusChange={(newStatus) => updatePaymentStatus(order._id, newStatus)}
+                        isLoading={updatingStatus === order._id}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

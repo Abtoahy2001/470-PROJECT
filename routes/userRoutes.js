@@ -12,6 +12,7 @@ router.post('/login', userController.login);
 // Protected routes (require authentication)
 router.use(authMiddleware);
 
+router.get('/me', userController.getMe);
 router.get('/', adminMiddleware, userController.getAllUsers);
 router.get('/:id', userController.getUser);
 router.patch('/:id', userController.updateUser);

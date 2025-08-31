@@ -20,12 +20,6 @@ const orderSchema = new mongoose.Schema({
     min: 0,
     default: 0
   },
-  tax: {
-    type: Number,
-    required: [true, 'Tax amount is required'],
-    min: 0,
-    default: 0
-  },
   total: {
     type: Number,
     required: [true, 'Total amount is required'],
@@ -40,7 +34,7 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Payment method is required'],
     enum: ['credit_card', 'paypal', 'bank_transfer', 'cash_on_delivery'],
-    default: 'credit_card'
+    default: 'cash_on_delivery'
   },
   payment_status: {
     type: String,
@@ -51,10 +45,6 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['processing', 'shipped', 'delivered', 'cancelled'],
     default: 'processing'
-  },
-  tracking_number: {
-    type: String,
-    trim: true
   },
   created_at: {
     type: Date,

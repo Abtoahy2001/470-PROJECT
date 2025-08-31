@@ -22,13 +22,13 @@ export function CartItem({ item, onQuantityChange, onRemove }: CartItemProps) {
     
     setQuantity(newQuantity)
     if (onQuantityChange) {
-      onQuantityChange(item.id, newQuantity)
+      onQuantityChange(item._id, newQuantity)
     }
   }
 
   const handleRemove = () => {
     if (onRemove) {
-      onRemove(item.id)
+      onRemove(item._id)
     }
   }
 

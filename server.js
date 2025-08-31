@@ -16,7 +16,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors({
   origin: '*', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'], 
   allowedHeaders: ['Content-Type', 'Authorization'] 
 }));
 const PORT = process.env.PORT || 5000;
